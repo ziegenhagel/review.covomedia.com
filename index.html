@@ -3,39 +3,60 @@
 
 <head>
     <meta charset="utf8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://www.youtube.com/iframe_api"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+        integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 
 <body>
-
     <br>
     <div id="app" class="container">
         <div class="row" v-if="youtube_id">
+            <div class="explain">
+                <h1>Feedback für Optimierungsschleifen </h1>
+                <i class="fa fa-info-circle"></i> Hier können Sie Versionen Ihres Films in
+                geschützter Umgebung einsehen und kommentieren.
+                Unser Team aus der Postproduktion wird Ihre Kommentare
+                aufgreifen und gewünschte Änderungen vornehmen.
+                <br><br>
+                <i class="fa fa-info-circle"></i> Auf der linken Seite befindet sich der Player, auf der rechten
+                Seite sehen Sie sie Kommentarspalte.
+                Sobald Sie beginnen, einen neuen Kommentar zu schreiben,
+                wird dieser automatisch mit der richtigen Stelle im Video verlinkt.
+            </div>
             <div class="col">
-                <div id="player"></div>
-                <div id="info" class="card card-body">
-                    Aktueller Video Timecode: {{formatTime(time)}}
-                </div>
-                <div id="version-section" v-if="versions.length > 1" class="card card-body">
-                    Zu diesem Video gibt es weitere Versionen:
-                    <table class="table" style="margin-top:15px">
-                        <tr :class="version.youtube_id == youtube_id ? 'active' : ''" v-for="(version,index) in versions">
-                        <td>Version {{index+1}} </td><td>{{version.changelog}}</td>
-                        <td>
-                            <i class="o5" v-if="version.youtube_id == youtube_id ? 'active' : ''">Aktuell ausgewählt</i>
-                            <a :href="'?youtube_id='+version.youtube_id" v-else>Anschauen</a></td>
-                        </tr>
-                    </table>
+                <div class="sticky-desktop">
+                    <div id="player"></div>
+                    <div id="info" class="card card-body">
+                        Aktueller Video Timecode: {{formatTime(time)}}
+                    </div>
+                    <div id="version-section" v-if="versions.length > 1" class="card card-body">
+                        Zu diesem Video gibt es weitere Versionen:
+                        <table class="table" style="margin-top:15px">
+                            <tr :class="version.youtube_id == youtube_id ? 'active' : ''"
+                                v-for="(version,index) in versions">
+                                <td>Version {{index+1}} </td>
+                                <td>{{version.changelog}}</td>
+                                <td>
+                                    <i class="o5" v-if="version.youtube_id == youtube_id ? 'active' : ''">Aktuell
+                                        ausgewählt</i>
+                                    <a :href="'?youtube_id='+version.youtube_id" v-else>Anschauen</a>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="col">
                 <div id="comment-section">
                     <div class="card">
                         <div class="card-header">
-                            Kommentar bei  {{formatTime(add_comment.time)}} hinzufügen
+                            Kommentar bei {{formatTime(add_comment.time)}} hinzufügen
                         </div>
                         <div class="card-body">
                             <textarea v-model="add_comment.text" class="form-control" v-on:keyup="stopVideo"
@@ -46,31 +67,42 @@
                     </div>
 
                     <div :class="comment.done == '1' ? 'card bg-success text-white' : 'card'"
-                        v-for="comment in comments">
-                        <div class="card-header">{{comment.author}}</div>
+                        v-for="comment in comments" v-if="comment.done == '0' || !hideDoneComments">
                         <div class="card-body">
-                            <p class="card-text">{{comment.text}}</p>
+                            <p class="card-text">
+                        <span v-if="comment.author.length > 1"><b>{{comment.author}}</b> -</span>
+                                {{comment.text}}</p>
                             <button @click="seekTo(comment.time)" class="btn btn-info">Zu {{formatTime(comment.time)}}
                                 springen</button>
-                            <button v-if="comment.done == '0' && comment.id" @click="toggle_done(comment)" class="btn btn-success">Als
+                            <button v-if="comment.done == '0' && comment.id" @click="toggle_done(comment)"
+                                class="btn btn-success">Als
                                 Fertig
                                 markieren</button>
                         </div>
                     </div>
+
+                    <a class="text-success" v-if="comments.filter(c=>c.done=='1').length > 1" style="cursor:pointer" @click="hideDoneComments=!hideDoneComments">
+                        <i :class="!hideDoneComments ? 'fa fa-eye-slash':'fa fa-eye'"></i>
+                        {{hideDoneComments ? "Zeige "+comments.filter(c=>c.done=='1').length + " fertige Kommentare an" : "Alle fertigen Kommentare ausblenden"}}</a>
+                    <br>
+                    <br>
+
                 </div>
             </div>
-    </div>
-    <div v-else class="card card-body">
-        <h1>Youtube Video für das Review angeben</h1>
-        <div style="margin:20px 0">
-            Dort finden Sie die Youtube ID: <br><img src="https://camo.githubusercontent.com/78e1ba6715553b6712b68ebbb3f520ddfa0b5e7c24801dd9901a5c3ba1d8211f/687474703a2f2f692e696d6775722e636f6d2f4f6c776b3463722e706e67" width="400">
         </div>
-        <form>
-            Bitte geben Sie die Youtube ID ein:
-            <input name="youtube_id" placeholder="Youtube ID" class="form-control"><br>
-            <input type="submit" class="btn btn-primary" value="Zum Review">
-        </form>
-    </div>
+        <div v-else class="card card-body">
+            <h1>Youtube Video für das Review angeben</h1>
+            <div style="margin:20px 0">
+                Dort finden Sie die Youtube ID: <br><img
+                    src="https://camo.githubusercontent.com/78e1ba6715553b6712b68ebbb3f520ddfa0b5e7c24801dd9901a5c3ba1d8211f/687474703a2f2f692e696d6775722e636f6d2f4f6c776b3463722e706e67"
+                    width="400">
+            </div>
+            <form>
+                Bitte geben Sie die Youtube ID ein:
+                <input name="youtube_id" placeholder="Youtube ID" class="form-control"><br>
+                <input type="submit" class="btn btn-primary" value="Zum Review">
+            </form>
+        </div>
     </div>
 
     <style>
@@ -91,23 +123,61 @@
             margin-bottom: .5em
         }
 
-        .form-control {margin-bottom: .5em;}
+        .form-control {
+            margin-bottom: .5em;
+        }
 
-        tr.active { background:#3dd5f3;
-; }
-        tr.active td {font-weight: bolder;color:#333}
+        tr.active {
+            background: #3dd5f3;
+        }
+
+        tr.active td {
+            font-weight: bolder;
+            color: #333
+        }
+
+        #player {
+            border-radius: .25rem;
+        }
+
+        @media (min-width:992px) {
+            .sticky-desktop {
+                position: sticky;
+                top: 10px;
+            }
+        }
 
         body {
-            background:rgb(31, 31, 31);
+            background: rgb(31, 31, 31);
         }
 
-        .card,.card table {
-            background:#444;
-            color:#eee;
+        .card {
+            box-shadow: 0;
+            border: none
+        }
+
+        .card,
+        .card table {
+            background: #444;
+            color: #eee;
 
         }
+
         .card table td a {
-            color:#3dd5f3;
+            color: #3dd5f3;
+        }
+
+        .explain {
+            position: relative;
+            min-width: 0;
+            word-wrap: break-word;
+            background-color: #b4cccc;
+            background-clip: border-box;
+            border: 1px solid rgba(0, 0, 0, .125);
+            border-radius: .25rem;
+            flex: 1 1 auto;
+            padding: 1rem 1rem;
+            margin-bottom: 1em
         }
     </style>
 
@@ -118,19 +188,12 @@
         const api_url = "https://api.covomedia.com/plug-review/"
         let youtube_id = urlParams.get("youtube_id")
 
-        /*
-        if( ""+youtube_id.substr(0,4) == "http") {
-            let urlParams2 = new URLSearchParams(youtube_id);
-            youtube_id = urlParams2.values().next().value
-            window.location.href="http://review.covomedia.com/?youtube_id="+youtube_id
-        }
-        */
-
         var player;
 
         var app = new Vue({
             el: '#app',
             data: {
+                hideDoneComments:false,
                 time: 0,
                 comments: [],
                 versions: [],
@@ -154,7 +217,7 @@
                 },
                 toggle_done: function (comment) {
                     comment.done = comment.done == "1" ? "0" : "1";
-                    fetch(api_url + youtube_id + "/comments/"+comment.id, {
+                    fetch(api_url + youtube_id + "/comments/" + comment.id, {
                         method: "put",
                         headers: {
                             "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
@@ -172,89 +235,93 @@
                         body: JSON.stringify({ ...this.add_comment, youtube_id })
                     })
                         .then(d => d.json())
-                        .then(function() {
+                        .then(function () {
                             this.comments.push({ ...this.add_comment })
+                            this.sortComments()
                             this.add_comment.text = ""
                         }.bind(this))
                         .catch(e => {
                             console.log("E", e);
                         })
                 },
-                refreshVersions: function() {
-                    fetch(api_url+youtube_id+"/versions/", {
+                refreshVersions: function () {
+                    fetch(api_url + youtube_id + "/versions/", {
                         headers: {
                             "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
                         },
                     })
-                    .then(d=>d.json())
-                    .then(d=>{console.log(d);if(d.data.length) this.versions = d.data; })
+                        .then(d => d.json())
+                        .then(d => { console.log(d); if (d.data.length) this.versions = d.data; })
                 },
-                refreshComments: function() {
-                    fetch(api_url+youtube_id+"/comments/", {
+                refreshComments: function () {
+                    fetch(api_url + youtube_id + "/comments/", {
                         headers: {
                             "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
                         },
                     })
-                    .then(d=>d.json())
-                    .then(d=>{if(d.data.length) this.comments = d.data})
+                        .then(d => d.json())
+                        .then(d => { this.comments = d.data; this.sortComments() })
                 },
-                updateTime: function() {
+                updateTime: function () {
                     this.time = parseInt(player.playerInfo.currentTime) | 0
 
-                    if(this.add_comment.text === "")
+                    if (this.add_comment.text === "")
                         this.add_comment.time = this.time
                 },
-                seekTo: function(time) {
-                    player.seekTo(time,true); 
+                seekTo: function (time) {
+                    player.seekTo(time, true);
                     player.playVideo()
                 },
-                stopVideo: function() {
-                    player.stopVideo()
+                stopVideo: function () {
+                    //player.stopVideo()
+                },
+                sortComments: function() {
+                    this.comments = this.comments.sort((a, b) => a.time < b.time)
                 }
             },
-            mounted: function() {
+            mounted: function () {
                 this.refreshComments()
                 this.refreshVersions()
-                setInterval(this.updateTime,500)
+                setInterval(this.updateTime, 500)
             }
         })
 
-      function onYouTubeIframeAPIReady() {
-        player = new YT.Player('player', {
-          height: '360',
-          width: '640',
-          videoId: youtube_id,
-          events: {
-            'onReady': onPlayerReady,
-            'onStateChange': onPlayerStateChange
-          },
-            playerVars: {
-                'autoplay': 1,
-                'controls': 1,
-                'rel': 0,
-                'fs': 0,
-            }
-        });
-      }
-
-      function onPlayerReady(event) {
-        event.target.playVideo();
-      }
-
-      
-      var done = false;
-      function onPlayerStateChange(event) {
-        /*
-        if (event.data == YT.PlayerState.PLAYING && !done) {
-          setTimeout(stopVideo, 6000);
-          done = true;
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: youtube_id,
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                },
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'fs': 0,
+                }
+            });
         }
-        */
-      }
-      function stopVideo() {
-        player.stopVideo();
-      }
-    </script>
-  </body>
-</html>
 
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+
+        var done = false;
+        function onPlayerStateChange(event) {
+            /*
+            if (event.data == YT.PlayerState.PLAYING && !done) {
+              setTimeout(stopVideo, 6000);
+              done = true;
+            }
+            */
+        }
+        function stopVideo() {
+            player.stopVideo();
+        }
+    </script>
+</body>
+
+</html>
