@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf8">
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+
+<body>
+
+    <br>
+    <div id="app" class="container">
+        <div class="row" v-if="youtube_id">
+            <div class="col">
+                <div id="player"></div>
+                <div id="info">
+                    Video Timecode: {{formatTime(time)}}
+                </div>
+            </div>
+            <div class="col">
+                <div id="comments">
+                    <div class="card">
+                        <div class="card-header">
+                            Kommentar bei  {{formatTime(add_comment.time)}} hinzufügen
+                        </div>
+                        <div class="card-body">
+                           
+                            <textarea v-model="add_comment.text" class="form-control"
+                                placeholder="Bitte Nachricht eingeben"></textarea>
+                            <input v-model="add_comment.author" class="form-control" placeholder="Ihr Name">
+                            <button @click="submit_comment" class="btn btn-primary">Kommentar speichern</button>
+                        </div>
+                    </div>
+
+                    <div :class="comment.done == '1' ? 'card bg-success text-white' : 'card'"
+                        v-for="comment in comments">
+                        <div class="card-header">{{comment.author}}</div>
+                        <div class="card-body">
+                            <p class="card-text">{{comment.text}}</p>
+                            <button @click="seekTo(comment.time)" class="btn btn-info">Zu {{formatTime(comment.time)}}
+                                springen</button>
+                            <button v-if="comment.done == '0' && comment.id" @click="toggle_done(comment)" class="btn btn-success">Als
+                                Fertig
+                                markieren</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+    <div v-else>
+        <h1>Video ID eingeben:</h1>
+        <form>
+            <input name="youtube_id" placeholder="Video ID" class="form-control">
+            <input type="submit" value="Absenden">
+        </form>
+    </div>
+    </div>
+
+    <style>
+        .row {
+            display: flex
+        }
+
+        .o5 {
+            opacity: .5;
+        }
+
+        .d-inline-block {
+            display: inline-block;
+            width: 100px
+        }
+
+        .card {
+            margin-bottom: .5em
+        }
+
+        .form-control {margin-bottom: .5em;}
+    </style>
+
+    <script>
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
+        const api_url = "https://api.covomedia.com/plug-review/"
+        const youtube_id = urlParams.get("youtube_id")
+        var app = new Vue({
+            el: '#app',
+            data: {
+                time: -1,
+                comments: [],
+                add_comment: {
+                    text: "",
+                    author: "Loui",
+                    time: -1,
+                    done: '0'
+                }
+            },
+            computed: {
+                youtube_id: function () { return youtube_id }
+            },
+            methods: {
+                formatTime: function (s) {
+                    const zeroPad = (num, places) => String(num).padStart(places, '0')
+
+                    let mins = zeroPad(Math.floor(s / 60), 2);
+                    let secs = zeroPad(s % 60, 2);
+                    return mins + ":" + secs;
+                },
+                toggle_done: function (comment) {
+                    comment.done = comment.done == "1" ? "0" : "1";
+                    fetch(api_url + youtube_id + "/comments/"+comment.id, {
+                        method: "put",
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                        body: JSON.stringify({ done: comment.done })
+                    })
+                },
+                submit_comment: function () {
+
+                    fetch(api_url + youtube_id + "/comments/", {
+                        method: "post",
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                        body: JSON.stringify({ ...this.add_comment, youtube_id })
+                    })
+                        .then(d => d.json())
+                        .then(d => {
+                            this.comments.push({ ...this.add_comment })
+                            this.add_comment.text = ""
+                        })
+                        .catch(e => {
+                            alert("Fehler")
+                            console.log("E", e);
+                        })
+                },
+                refreshComments: function() {
+                    fetch(api_url+youtube_id+"/comments/", {
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                    })
+                    .then(d=>d.json())
+                    .then(d=>this.comments = d.data)
+                },
+                updateTime: function() {
+                    this.time = parseInt(player.playerInfo.currentTime) | 0
+
+                    if(this.add_comment.text === "")
+                        this.add_comment.time = this.time
+                },
+                seekTo: function(time) {
+                    player.seekTo(time,true); 
+                },
+                pauseVideo: function() {
+                    player.stopVideo()
+                }
+            },
+            mounted: function() {
+                this.refreshComments()
+                setInterval(this.updateTime,500)
+            }
+        })
+
+      var player;
+      function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+          height: '360',
+          width: '640',
+          videoId: youtube_id,
+          events: {
+            'onReady': onPlayerReady,
+            'onStateChange': onPlayerStateChange
+          }
+        });
+      }
+
+      function onPlayerReady(event) {
+        event.target.playVideo();
+      }
+
+      
+      var done = false;
+      function onPlayerStateChange(event) {
+        /*
+        if (event.data == YT.PlayerState.PLAYING && !done) {
+          setTimeout(stopVideo, 6000);
+          done = true;
+        }
+        */
+      }
+      function stopVideo() {
+        player.stopVideo();
+      }
+    </script>
+  </body>
+</html>
+
