@@ -19,7 +19,7 @@
                 <div id="info" class="card card-body">
                     Aktueller Video Timecode: {{formatTime(time)}}
                 </div>
-                <div id="version-section" class="card card-body">
+                <div id="version-section" v-if="versions.length > 1" class="card card-body">
                     Zu diesem Video gibt es weitere Versionen:
                     <table class="table" style="margin-top:15px">
                         <tr :class="version.youtube_id == youtube_id ? 'active' : ''" v-for="(version,index) in versions">
