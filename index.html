@@ -25,18 +25,18 @@
                 aufgreifen und gewünschte Änderungen vornehmen.
                 <br><br>
                 <i class="fa fa-info-circle"></i> Auf der linken Seite befindet sich der Player, auf der rechten
-                Seite sehen Sie sie Kommentarspalte.
+                Seite sehen Sie die Kommentarspalte.
                 Sobald Sie beginnen, einen neuen Kommentar zu schreiben,
                 wird dieser automatisch mit der richtigen Stelle im Video verlinkt.
             </div>
             <div class="col">
                 <div class="sticky-desktop">
                     <div id="player"></div>
-                    <div id="info" class="card card-body">
-                        Aktueller Video Timecode: {{formatTime(time)}}
+                    <div id="info" class="card card-body has-i">
+                        <i class="fa fa-stopwatch"></i> Timecode: {{formatTime(time)}}
                     </div>
                     <div id="version-section" v-if="versions.length > 1" class="card card-body">
-                        Zu diesem Video gibt es weitere Versionen:
+                        <h4> <i class="fa fa-history"></i> Versionen </h4>
                         <table class="table" style="margin-top:15px">
                             <tr :class="version.youtube_id == youtube_id ? 'active' : ''"
                                 v-for="(version,index) in versions">
@@ -55,35 +55,39 @@
             <div class="col">
                 <div id="comment-section">
                     <div class="card">
-                        <div class="card-header">
-                            Kommentar bei {{formatTime(add_comment.time)}} hinzufügen
-                        </div>
                         <div class="card-body">
+                            <h4> <i class="fa fa-comment"></i> Feedback </h4>
+                            <div style="margin:10px 0"> Kommentar bei <span class="truetype">{{formatTime(add_comment.time)}}</span> im Video hinterlassen.</div>
                             <textarea v-model="add_comment.text" class="form-control" v-on:keyup="stopVideo"
                                 placeholder="Kommentar zu aktueller Video Stelle eingeben"></textarea>
                             <input v-model="add_comment.author" class="form-control" placeholder="Ihr Name">
-                            <button @click="submit_comment" class="btn btn-primary">Kommentar speichern</button>
+                            <button @click="submit_comment" class="btn btn-primary"> Kommentar speichern <i
+                                    class="fa fa-chevron-right"></i></button>
                         </div>
+
                     </div>
 
                     <div :class="comment.done == '1' ? 'card bg-success text-white' : 'card'"
                         v-for="comment in comments" v-if="comment.done == '0' || !hideDoneComments">
                         <div class="card-body">
                             <p class="card-text">
-                        <span v-if="comment.author.length > 1"><b>{{comment.author}}</b> -</span>
-                                {{comment.text}}</p>
-                            <button @click="seekTo(comment.time)" class="btn btn-info">Zu {{formatTime(comment.time)}}
+                                <span v-if="comment.author.length > 1"><i class="fa fa-at"></i>
+                                    <b>{{comment.author}}</b> -</span>
+                                {{comment.text}}
+                            </p>
+                            <button @click="seekTo(comment.time)" class="btn btn-info"><i class="fa fa-share"></i> Zu
+                                {{formatTime(comment.time)}}
                                 springen</button>
                             <button v-if="comment.done == '0' && comment.id" @click="toggle_done(comment)"
-                                class="btn btn-success">Als
-                                Fertig
-                                markieren</button>
+                                class="btn btn-success"><i class="fa fa-check"></i> Als Fertig markieren</button>
                         </div>
                     </div>
 
-                    <a class="text-success" v-if="comments.filter(c=>c.done=='1').length > 1" style="cursor:pointer" @click="hideDoneComments=!hideDoneComments">
+                    <a class="text-success" v-if="comments.filter(c=>c.done=='1').length > 1" style="cursor:pointer"
+                        @click="hideDoneComments=!hideDoneComments">
                         <i :class="!hideDoneComments ? 'fa fa-eye-slash':'fa fa-eye'"></i>
-                        {{hideDoneComments ? "Zeige "+comments.filter(c=>c.done=='1').length + " fertige Kommentare an" : "Alle fertigen Kommentare ausblenden"}}</a>
+                        {{hideDoneComments ? "Zeige "+comments.filter(c=>c.done=='1').length + " fertige Kommentare an"
+                        : "Alle fertigen Kommentare ausblenden"}}</a>
                     <br>
                     <br>
 
@@ -136,6 +140,10 @@
             color: #333
         }
 
+        .has-i {
+            display: block
+        }
+
         #player {
             border-radius: .25rem;
         }
@@ -179,6 +187,11 @@
             padding: 1rem 1rem;
             margin-bottom: 1em
         }
+
+        
+        .truetype {font-family: monospace;font-size:1.3rem}
+        
+        
     </style>
 
     <script>
@@ -193,7 +206,7 @@
         var app = new Vue({
             el: '#app',
             data: {
-                hideDoneComments:false,
+                hideDoneComments: false,
                 time: 0,
                 comments: [],
                 versions: [],
@@ -275,7 +288,7 @@
                 stopVideo: function () {
                     //player.stopVideo()
                 },
-                sortComments: function() {
+                sortComments: function () {
                     this.comments = this.comments.sort((a, b) => a.time < b.time)
                 }
             },
