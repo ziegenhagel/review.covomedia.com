@@ -21,15 +21,14 @@
                 </div>
             </div>
             <div class="col">
-                <div id="comments">
+                <div id="comment-section">
                     <div class="card">
                         <div class="card-header">
                             Kommentar bei  {{formatTime(add_comment.time)}} hinzufügen
                         </div>
                         <div class="card-body">
-                           
-                            <textarea v-model="add_comment.text" class="form-control"
-                                placeholder="Bitte Nachricht eingeben"></textarea>
+                            <textarea v-model="add_comment.text" class="form-control" v-on:keyup="stopVideo"
+                                placeholder="Kommentar zu aktueller Video Stelle eingeben"></textarea>
                             <input v-model="add_comment.author" class="form-control" placeholder="Ihr Name">
                             <button @click="submit_comment" class="btn btn-primary">Kommentar speichern</button>
                         </div>
@@ -85,7 +84,18 @@
         const urlParams = new URLSearchParams(queryString);
 
         const api_url = "https://api.covomedia.com/plug-review/"
-        const youtube_id = urlParams.get("youtube_id")
+        let youtube_id = urlParams.get("youtube_id")
+
+        /*
+        if( ""+youtube_id.substr(0,4) == "http") {
+            let urlParams2 = new URLSearchParams(youtube_id);
+            youtube_id = urlParams2.values().next().value
+            window.location.href="http://review.covomedia.com/?youtube_id="+youtube_id
+        }
+        */
+
+        var player;
+
         var app = new Vue({
             el: '#app',
             data: {
@@ -129,12 +139,11 @@
                         body: JSON.stringify({ ...this.add_comment, youtube_id })
                     })
                         .then(d => d.json())
-                        .then(d => {
+                        .then(function() {
                             this.comments.push({ ...this.add_comment })
                             this.add_comment.text = ""
-                        })
+                        }.bind(this))
                         .catch(e => {
-                            alert("Fehler")
                             console.log("E", e);
                         })
                 },
@@ -145,7 +154,7 @@
                         },
                     })
                     .then(d=>d.json())
-                    .then(d=>this.comments = d.data)
+                    .then(d=>{if(d.data.length) this.comments = d.data})
                 },
                 updateTime: function() {
                     this.time = parseInt(player.playerInfo.currentTime) | 0
@@ -155,8 +164,9 @@
                 },
                 seekTo: function(time) {
                     player.seekTo(time,true); 
+                    player.playVideo()
                 },
-                pauseVideo: function() {
+                stopVideo: function() {
                     player.stopVideo()
                 }
             },
@@ -166,7 +176,6 @@
             }
         })
 
-      var player;
       function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
           height: '360',
@@ -175,7 +184,13 @@
           events: {
             'onReady': onPlayerReady,
             'onStateChange': onPlayerStateChange
-          }
+          },
+            playerVars: {
+                'autoplay': 1,
+                'controls': 1,
+                'rel': 0,
+                'fs': 0,
+            }
         });
       }
 
