@@ -666,7 +666,7 @@
                 }
             },
             mounted: function () {
-                this.refreshComments()
+                setVersionId(this.version_id)
                 this.refreshVersions()
                 setInterval(this.updateTime, 500)
             }
