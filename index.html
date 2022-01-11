@@ -7,8 +7,6 @@
     <script src="https://www.youtube.com/iframe_api"></script>
     <!--<script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>-->
     <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
-
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
@@ -17,6 +15,22 @@
 </head>
 
 <body>
+    <header id="nav-top" class="is-dark mobile-not-collapsed">
+        <div class="container"><a class="nolink" href="/">
+                <div class="nav-left">
+                        <img id="logo-anim"
+                            alt="Ziegenhagel Media Logo" src="https://ziegenhagel.com/static/logo-49a4d0c39260add115bae97c1fbb3196.jpg">
+                    <div class="nav-logo-text">Ziegenhagel <span style="color: rgb(119, 119, 119);">Media</span></div>
+                </div>
+            </a>
+            <div class="nav-hamburger">
+                <div id="nav-icon2" class="closed">
+                    <span></span><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="nav-right"><a target="_blank" href="https://ziegenhagel.com/support">Support</a></div>
+        </div>
+    </header>
+
     <br>
     <div id="app" class="container">
         <div class="row" v-if="youtube_id">
@@ -54,7 +68,7 @@
                                 <td>
                                     <i class="o5" v-if="version.youtube_id == youtube_id ? 'active' : ''">Aktuell
                                         ausgewählt</i>
-                                    <a class="link" :href="'?youtube_id='+version.youtube_id" v-else>Anschauen</a>
+                                    <a class="link" :href="'?youtube_id='+version.youtube_id" v-else>Anschauen ›</a>
                                 </td>
                             </tr>
                         </table>
@@ -131,125 +145,325 @@
     </div>
 
     <style>
+        #nav-top.is-dark {
+            background: rgba(0, 0, 0, .8);
+            box-shadow: none;
+        }
+    
+        #logo-anim {
+            height: 3rem;
+            margin: .4em 0;
+        }
+    
+        #nav-top {
+            box-shadow: 0 0 30px -15px rgba(0, 0, 0, .3);
+            font-size: 1.3rem;
+            z-index: 101;
+            top: 0;
+            background: rgba(255, 255, 255, .8);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            left: 0;
+            right: 0;
+            transition: .4s;
+        }
+    
+        .nav-left #logo-anim {
+            width: 55px;
+            height: 55px;
+            transition: .4s;
+            border-radius: 50%;
+        }
+    
+        #nav-top.is-dark .nav-logo-text,
+        #nav-top.is-dark a.active,
+        #nav-top.is-dark a:not(.nolink):active,
+        #nav-top.is-dark a:not(.nolink):hover {
+            color: #fff;
+        }
+    
+        .nav-logo-text {
+            margin-left: 1rem;
+        }
+    
+        #nav-top.is-dark .nav-logo-text,
+        #nav-top.is-dark a.active,
+        #nav-top.is-dark a:not(.nolink):active,
+        #nav-top.is-dark a:not(.nolink):hover {
+            color: #fff;
+        }
+    
+        #nav-top.is-dark .nav-logo-text,
+        #nav-top.is-dark a.active,
+        #nav-top.is-dark a:not(.nolink):active,
+        #nav-top.is-dark a:not(.nolink):hover {
+            color: #fff;
+        }
+    
+        logo-text,
+        #nav-top.is-dark a.active,
+        #nav-top.is-dark a:not(.nolink):active,
+        #nav-top.is-dark a:not(.nolink):hover {
+            color: #fff;
+        }
+    
+        #nav-top a.active,
+        #nav-top a:not(.nolink):active,
+        #nav-top a:not(.nolink):hover,
+        .text ol p {
+            color: #777;
+            transition: background-color .1s, color .1s;
+            text-decoration: none;
+        }
+    
+        #nav-top.is-dark a:not(.nolink) {
+            color: #ddd;
+        }
+    
+        #nav-top a:not(.nolink) {
+            padding: .4em 1em;
+            transition: background-color .4s, color .4s;
+            color: #333;
+        }
+    
+        #nav-top a.active,
+        #nav-top a:not(.nolink):active,
+        #nav-top a:not(.nolink):hover,
+        .text ol p {
+            color: #777;
+            transition: background-color .1s, color .1s;
+            text-decoration: none;
+        }
+    
+        #nav-top a:not(.nolink):hover,
+        .text ol p {
+            color: #777;
+            transition: background-color .1s, color .1s;
+            text-decoration: none;
+        }
+    
+        #nav-top a {
+            text-decoration: none;
+        }
+    
+        #nav-top a:not(.nolink) {
+            padding: .4em 1em;
+            transition: background-color .4s, color .4s;
+            color: #333;
+        }
+    
+        #nav-top .nav-right {
+            margin-right: 1em;
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+    
+        .container {
+            margin: auto;
+            max-width: 1240px;
+            width: 100%;
+            width: auto;
+            padding: 0 1em;
+            display: flex
+        }
+    
+        * {
+            font-weight: 100;
+            font-family: "Rubik"
+        }
+    
+        .nav-left {
+            align-items: center;
+            display: flex;
+        }
+    
+        .nav-left:hover #logo-anim {
+            filter: invert(100%);
+            transform: rotate(-180deg);
+        }
+    
         .row {
             display: flex
         }
-
+    
         .o5 {
             opacity: .5;
         }
-
+    
         .o5-hover {
             opacity: .6;
             color: white;
             transition: .1s;
         }
-
+    
         .o5-hover:hover {
             opacity: 1;
             color: white
         }
-
+    
         h4 {
             margin: 0
         }
-
+    
         table {
             margin: 0
         }
-
+    
         table tr td {
             border: none;
             border-top: 1px solid #0005;
         }
-
+    
         .card-comments>div,
         .card-body.border-top {
             border-top: 2px solid #0005 !important;
         }
-
+    
         .d-inline-block {
             display: inline-block;
             width: 100px
         }
-
+    
         .card {
             margin-bottom: .5em
         }
-
+    
         .form-control {
-            margin-bottom: .5em;
         }
-
+    
         tr.active {
             background: #3dd5f3;
         }
-
+    
         tr.active td {
             font-weight: bolder;
             color: #333
         }
-
+    
         .has-i {
             display: block
         }
-
+    
         #player {
             border-radius: .25rem;
+            border-radius: 0;
         }
-
+    
         @media (min-width:992px) {
             .sticky-desktop {
                 position: sticky;
                 top: 10px;
             }
         }
-
+    
         body {
             background: rgb(31, 31, 31);
         }
-
+    
         .card {
             box-shadow: 0;
             border: none
         }
-
+    
         .card,
         .card table {
             background: #444;
             color: #eee;
-
+    
         }
-
+    
         .card table td a {
             color: #3dd5f3;
         }
-
+    
         .explain {
-
+    
             background-color: #b4cccc;
             border-radius: .25rem;
             margin-bottom: 1em
         }
-
+    
         table tr:not(.active):hover {
             background: #b4cccc11;
             transition: .1s
         }
-
+    
         .link {
             text-decoration: none;
             transition: .17s
         }
-
+    
         .link:hover {
             color: white
         }
-
-
-        .truetype {
+    
+            .truetype {
             font-family: monospace;
             font-size: 1.3rem
+        }
+    
+        @font-face {
+            font-family: Rubik;
+            src: url('Rubik-Medium-ee64fb9d3f1ba2333e1b489283925bce.ttf');
+        }
+    
+    
+        .card,
+        .explain {
+            border-radius: 0;
+        }
+    
+        .btn.btn-primary-outline:hover {
+            background: rgba(0, 0, 0, .06666666666666667);
+        }
+    
+        .btn.btn-primary-outline {
+            border: 2px solid #444;
+        }
+    
+        :active,
+        a:hover {
+            outline-width: 0;
+        }
+    
+        .mt-2 {
+            margin-top: 20px !important;
+        }
+    
+    .form-control {
+        border-width: 2px;
+        border:none;
+        opacity: .9;
+    }
+    .form-control:focus {
+        opacity: 1;
+    }
+    .form-control,
+        .badge,
+        .btn {
+            padding: .4em .8em;
+            border-radius: 8px;
+            margin-right: .2em;
+            box-shadow: none;
+            display: inline-block;
+            transition: .0s;
+        }
+        .badge,
+        .btn {
+            cursor: pointer;
+        } .btn.btn-info {
+            background:#444;
+            border-width: 2px;
+            color:#25cff2;
+        } .btn.btn-info:hover {
+            background:#333;
+        } .btn.btn-info:active {
+            filter:brightness(95%)
+        }
+        #comment-section .btn {
+            margin-top:.5em;
+            margin-left:0
         }
     </style>
 
@@ -401,6 +615,7 @@
         function stopVideo() {
             player.stopVideo();
         }
+
     </script>
 </body>
 
