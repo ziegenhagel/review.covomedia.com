@@ -666,7 +666,7 @@
                 }
             },
             mounted: function () {
-                setVersionId(this.version_id)
+                this.setVersionId(this.version_id)
                 this.refreshVersions()
                 setInterval(this.updateTime, 500)
             }
