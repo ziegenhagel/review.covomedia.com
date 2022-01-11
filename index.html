@@ -27,11 +27,11 @@
                 <div id="nav-icon2" class="closed">
                     <span></span><span></span><span></span><span></span><span></span><span></span></div>
             </div>
-            <div class="nav-right"><a target="_blank" href="https://ziegenhagel.com/support">Support</a></div>
+            <div class="nav-right"><a target="_blank" href="https://ziegenhagel.com/support" >
+                <i class="fa fa-external-link-alt"></i> Support</a></div>
         </div>
     </header>
 
-    <br>
     <div id="app" class="container">
         <div class="row" v-if="youtube_id">
             <div class="explain">
@@ -386,10 +386,19 @@
         }
     
         .explain {
-    
-            background-color: #b4cccc;
+            border-top:5px solid #25cff2dd;
+            background-color: #94c8c844;
             border-radius: .25rem;
-            margin-bottom: 1em
+            margin-bottom: 1em;
+            color:white;
+            padding-top:.4em;
+        }
+        .explain .card-body.border-top {
+            border-color:#fff3 !important;
+            margin:0 .75em;
+            margin-bottom:.75em;
+            padding:10px 0;
+            color:#eee;
         }
     
         table tr:not(.active):hover {
@@ -422,6 +431,10 @@
             border-radius: 0;
         }
     
+        .explain {
+            max-width:1210px;
+            margin:20px  10px;
+        }
         .btn.btn-primary-outline:hover {
             background: rgba(0, 0, 0, .06666666666666667);
         }
@@ -472,6 +485,10 @@
         #comment-section .btn {
             margin-top:.5em;
             margin-left:0
+        }
+        .btn.btn-primary {
+            border:none;
+            background:#00b0d3;
         }
     </style>
 
@@ -524,14 +541,14 @@
                     })
                 },
                 submit_comment: function () {
-                    this.commentSubmitting = true
 
                     if(this.add_comment.text.length == 0)
                         alert("Bitte füllen Sie das Kommentarfeld aus.")
                     else if(this.add_comment.author.length == 0)
                         alert("Bitte geben Sie Ihren Namen ein.")
-                    else
+                    else {
 
+                    this.commentSubmitting = true
                     fetch(api_url + youtube_id + "/comments/", {
                         method: "post",
                         headers: {
@@ -550,6 +567,7 @@
                             this.commentSubmitting = false
                             console.log("E", e);
                         })
+                    }
                 },
                 refreshVersions: function () {
                     fetch(api_url + youtube_id + "/versions/", {
