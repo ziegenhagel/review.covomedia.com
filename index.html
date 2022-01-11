@@ -15,24 +15,30 @@
 </head>
 
 <body>
+    <div  id="app">
     <header id="nav-top" class="is-dark mobile-not-collapsed">
-        <div class="container"><a class="nolink" href="/">
+        <div class="container"><a class="nolink"  :href="brand == 'ziegenhagel' ? 'https://ziegenhagel.com/' : 'https://www.guerillamedia-freiburg.de/'" >
                 <div class="nav-left">
-                        <img id="logo-anim"
-                            alt="Ziegenhagel Media Logo" src="https://ziegenhagel.com/static/logo-49a4d0c39260add115bae97c1fbb3196.jpg">
-                    <div class="nav-logo-text">Ziegenhagel <span style="color: rgb(119, 119, 119);">Media</span></div>
+                    <img id="logo-anim" v-if="brand == 'ziegenhagel'" alt="Ziegenhagel Media Logo"
+                        src="https://ziegenhagel.com/static/logo-49a4d0c39260add115bae97c1fbb3196.jpg">
+                    <img id="logo-anim" v-else alt="Ziegenhagel Media Logo"
+                        src="https://i2.wp.com/www.guerillamedia-freiburg.de/wp-content/uploads/2021/09/Laurin_Film_s-w-1-quadrat.jpg?resize=150%2C150&ssl=1">
+                    <div class="nav-logo-text" v-if="brand == 'ziegenhagel'">Ziegenhagel <span
+                            style="color: rgb(119, 119, 119);">Media</span></div>
+                    <div class="nav-logo-text" v-else>guerillamedia</div>
                 </div>
             </a>
             <div class="nav-hamburger">
                 <div id="nav-icon2" class="closed">
-                    <span></span><span></span><span></span><span></span><span></span><span></span></div>
+                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
             </div>
-            <div class="nav-right"><a target="_blank" href="https://ziegenhagel.com/support" >
+            <div class="nav-right"><a target="_blank" :href="brand == 'ziegenhagel' ? 'https://ziegenhagel.com/support' : 'https://www.guerillamedia-freiburg.de/kontakt'" >
                 <i class="fa fa-external-link-alt"></i> Support</a></div>
         </div>
     </header>
 
-    <div id="app" class="container">
+    <div class="container">
         <div class="row" v-if="youtube_id">
             <div class="explain">
                 <div class="card-body">
@@ -150,6 +156,7 @@
             </form>
         </div>
     </div>
+</div>
 
     <style>
         #nav-top.is-dark {
@@ -498,12 +505,16 @@
 
         const api_url = "https://api.covomedia.com/plug-review/"
         let youtube_id = urlParams.get("youtube_id")
+        let brand = urlParams.get("brand")
+
+        if(brand != "guerillamedia") brand = "ziegenhagel"
 
         var player;
 
         var app = new Vue({
             el: '#app',
             data: {
+                brand,
                 hideDoneComments: false,
                 currentYoutubeID: youtube_id,
                 showEditLinks: false,
