@@ -629,7 +629,10 @@
                         },
                     })
                         .then(d => d.json())
-                        .then(d => { if (d.data.length) this.versions = d.data; })
+                        .then(d => {
+                            if (d.data.length) this.versions = d.data;
+                            this.setVersionId(this.version_id)
+                         })
                 },
                 refreshComments: function () {
                     fetch(api_url + this.version_id + "/comments/", {
@@ -666,7 +669,6 @@
                 }
             },
             mounted: function () {
-                this.setVersionId(this.version_id)
                 this.refreshVersions()
                 setInterval(this.updateTime, 500)
             }
