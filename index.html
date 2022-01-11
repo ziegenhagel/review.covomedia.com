@@ -61,14 +61,14 @@
                             <h4> <i class="fa fa-history"></i> Versionen </h4>
                         </div>
                         <table class="table border-top">
-                            <tr :class="version.youtube_id == youtube_id ? 'active' : ''"
+                            <tr :class="version.youtube_id == currentYoutubeID ? 'active' : ''"
                                 v-for="(version,index) in versions">
                                 <td>Version {{index+1}} </td>
                                 <td>{{version.changelog}}</td>
                                 <td>
-                                    <i class="o5" v-if="version.youtube_id == youtube_id ? 'active' : ''">Aktuell
+                                    <i class="o5" v-if="version.youtube_id == currentYoutubeID ? 'active' : ''">Aktuell
                                         ausgewählt</i>
-                                    <a class="link" :href="'?youtube_id='+version.youtube_id" v-else>Anschauen ›</a>
+                                    <a class="link" @click="setupYoutubeIDAgain(version.youtube_id)" v-else>Anschauen ›</a>
                                 </td>
                             </tr>
                         </table>
@@ -85,10 +85,12 @@
                             <div style="margin-bottom:10px"> Kommentar bei <span
                                     class="truetype">{{formatTime(add_comment.time)}}</span> im Video hinterlassen.
                             </div>
-                            <textarea autofocus="autofocus" v-model="add_comment.text" class="form-control" v-on:keyup="stopVideo"
+                            <textarea autofocus="autofocus" :disabled="commentSubmitting" v-model="add_comment.text" class="form-control" v-on:keyup="stopVideo"
                                 placeholder="Kommentar zu aktueller Video Stelle eingeben"></textarea>
-                            <input v-model="add_comment.author" class="form-control" placeholder="Ihr Name">
-                            <button @click="submit_comment" class="btn btn-primary"> Kommentar speichern <i
+                            <input v-model="add_comment.author" :disabled="commentSubmitting" class="form-control" placeholder="Ihr Name">
+                            <button @click="submit_comment" :class="commentSubmitting ? 'btn btn-primary disabled':'btn btn-primary'"> 
+                                <span class="spinner-border spinner-border-sm" v-if="commentSubmitting" role="status" aria-hidden="true"></span>
+                                Kommentar speichern <i
                                     class="fa fa-chevron-right"></i></button>
                         </div>
 
@@ -98,7 +100,12 @@
                         <div class="card-body">
                             <h4> <i class="fa fa-list"></i> Kommentare </h4>
                         </div>
-                        <div :class="comment.done == '1' ? ' bg-success text-white' : ''" v-for="comment in comments"
+                        <div v-if="commentsLoading" style="margin:100px auto">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                        </div>
+                        <div v-else :class="comment.done == '1' ? ' bg-success text-white' : ''" v-for="comment in comments"
                             v-if="comment.done == '0' || !hideDoneComments">
                             <div class="card-body">
                                 <p class="card-text">
@@ -344,6 +351,7 @@
         .has-i {
             display: block
         }
+        .link{cursor: pointer;}
     
         #player {
             border-radius: .25rem;
@@ -480,9 +488,12 @@
             el: '#app',
             data: {
                 hideDoneComments: false,
+                currentYoutubeID: youtube_id,
                 showEditLinks: false,
+                commentSubmitting : false,
                 time: 0,
                 comments: [],
+                commentsLoading:true,
                 versions: [],
                 add_comment: {
                     text: "",
@@ -513,6 +524,7 @@
                     })
                 },
                 submit_comment: function () {
+                    this.commentSubmitting = true
 
                     if(this.add_comment.text.length == 0)
                         alert("Bitte füllen Sie das Kommentarfeld aus.")
@@ -529,11 +541,13 @@
                     })
                         .then(d => d.json())
                         .then(function () {
+                            this.commentSubmitting = false
                             this.comments.push({ ...this.add_comment })
                             this.sortComments()
                             this.add_comment.text = ""
                         }.bind(this))
                         .catch(e => {
+                            this.commentSubmitting = false
                             console.log("E", e);
                         })
                 },
@@ -553,7 +567,7 @@
                         },
                     })
                         .then(d => d.json())
-                        .then(d => {if(d.data == undefined) return; this.comments = d.data; this.sortComments() })
+                        .then(d => {this.commentsLoading = false;if(d.data == undefined) return; this.comments = d.data; this.sortComments() })
                 },
                 updateTime: function () {
                     this.time = parseInt(player.playerInfo.currentTime) | 0
@@ -569,8 +583,15 @@
                     //player.stopVideo()
                 },
                 sortComments: function () {
-                    if(this.comments != undefined)
-                    this.comments = this.comments.sort((a, b) => a.time < b.time)
+                    if (this.comments != undefined)
+                        this.comments = this.comments.sort((a, b) => a.time < b.time)
+                },
+                setupYoutubeIDAgain: function (some_id) {
+                    youtube_id = some_id;
+                    player.loadVideoById(youtube_id);
+                    this.commentsLoading = true
+                    this.refreshComments()
+                    this.currentYoutubeID = some_id
                 }
             },
             mounted: function () {
@@ -581,6 +602,8 @@
         })
 
         function onYouTubeIframeAPIReady() {
+            console.log("Create Youtube Playert");
+
             player = new YT.Player('player', {
                 height: '360',
                 width: '640',
@@ -615,6 +638,7 @@
         function stopVideo() {
             player.stopVideo();
         }
+
 
     </script>
 </body>
