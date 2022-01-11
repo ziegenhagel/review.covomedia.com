@@ -52,9 +52,18 @@
             </div>
             <div class="col">
                 <div class="sticky-desktop">
-                    <div id="player"></div>
+                    <div class="row">
+                        <div id="player"></div>
+                        <div id="player2"  v-if="showBoth"></div>
+                    </div>
                     <div id="info" class="card card-body has-i">
                         <h4><i class="fa fa-stopwatch"></i> Timecode: {{formatTime(time)}}</h4>
+                        <div v-if="showBoth">
+                            <button @click="playBoth">Beide abspielen</button>
+                            <button @click="stopBoth">Beide anhalten</button>
+                            <button @click="showBoth=false">Vergleichmodus verlassen</button>
+                        </div>
+                        <button v-else @click="showBoth = true">Vergleichmodus einschalten</button>
                     </div>
                     <div id="version-section" v-if="versions.length > 1" class="card">
                         <div class="card-body">
@@ -274,6 +283,7 @@
             padding: 0 1em;
             display: flex
         }
+        .hidden {width:100px;}
     
         * {
             font-weight: 100;
@@ -499,7 +509,7 @@
         const api_url = "https://api.covomedia.com/plug-review/"
         let youtube_id = urlParams.get("youtube_id")
 
-        var player;
+        var player,player2;
 
         var app = new Vue({
             el: '#app',
@@ -508,6 +518,7 @@
                 currentYoutubeID: youtube_id,
                 showEditLinks: false,
                 commentSubmitting : false,
+                showBoth: false,
                 time: 0,
                 comments: [],
                 commentsLoading:true,
@@ -594,9 +605,13 @@
                         this.add_comment.time = this.time
                 },
                 seekTo: function (time) {
-                    player.seekTo(time, true);
-                    player.playVideo()
+                    player.seekTo(time, true); player.playVideo();
+
+                    if(this.showBoth)
+                        player2.seekTo(time, true); player2.playVideo();
                 },
+                stopBoth: function () { player.stopVideo();player2.stopVideo() },
+                playBoth: function () { player.playVideo();player2.playVideo() },
                 stopVideo: function () {
                     //player.stopVideo()
                 },
@@ -610,7 +625,7 @@
                     this.commentsLoading = true
                     this.refreshComments()
                     this.currentYoutubeID = some_id
-                }
+                },
             },
             mounted: function () {
                 this.refreshComments()
@@ -637,10 +652,27 @@
                     'fs': 0,
                 }
             });
+            player2 = new YT.Player('player2', {
+                height: '360',
+                width: '640',
+                videoId: "nFyipEalqn8",
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                },
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 0,
+                    'rel': 0,
+                    'fs': 0,
+                }
+            });
+        
         }
-
         function onPlayerReady(event) {
             event.target.playVideo();
+            if(event.target.m.id == "player2")
+                event.target.mute();
         }
 
 
