@@ -40,7 +40,8 @@
 
         <div class="container">
             <div class="row">
-                <div class="explain">
+                <div class="explain" v-if="isExplainVisible">
+                        <i class="fa fa-times close" @click="isExplainVisible=false"></i>
                     <div class="card-body">
                         <h4>Feedback für Optimierungsschleifen </h4>
                     </div>
@@ -60,8 +61,19 @@
                     <div class="sticky-desktop">
 
                         <div v-show="version_src" class="embed-responsive embed-responsive-16by9">
-                            <video autoplay class="embed-responsive-item" controls ref="player" style="max-width:100%">
+                            <div v-if="compare_version_id" class="compare_video_overlay">Version {{version_code}}</div>
+                            <video autoplay class="embed-responsive-item" controls ref="player" style="max-width:100%"
+                            onpause="document.getElementById('compare_player').pause()"
+                            ontimeupdate="document.getElementById('compare_player').currentTime=this.currentTime"
+                            onplay="document.getElementById('compare_player').play()"
+                            >
                                  <source :src="version_src" type="video/mp4">
+                            </video>
+                        </div>
+                        <div v-show="compare_version_src" class="embed-responsive embed-responsive-16by9">
+                            <div v-if="compare_version_id" class="compare_video_overlay">Vergleich Version {{compare_version_code}}</div>
+                            <video id="compare_player" autoplay muted class="embed-responsive-item" ref="compare_player" style="max-width:100%">
+                                 <source :src="compare_version_src" type="video/mp4">
                             </video>
                         </div>
 
@@ -81,6 +93,9 @@
                                         <i class="o5" v-if="version.id == version_id ? 'active' : ''">Aktuell ausgewählt</i>
                                         <a class="link" @click="setVersionId(version.id)" v-else>Anschauen ›</a>
                                     </td>
+                                    <td>
+                                        <a class="link" @click="setCompareVersionId(version.id)">Vergleichen ›</a>
+                                    </td>
                                 </tr>
                             </table>
                         </div>
@@ -93,8 +108,8 @@
                                 <h4> <i class="fa fa-comment"></i> Feedback </h4>
                             </div>
                             <div class="card-body border-top">
-                                <div style="margin-bottom:10px"> Kommentar bei <span
-                                        class="truetype">{{formatTime(add_comment.time)}}</span> im Video hinterlassen.
+                                <div style="margin-bottom:10px"> Kommentar an Stelle <span
+                                        class="truetype">{{formatTime(add_comment.time)}}</span>  <span v-if="compare_version_id">in Version {{version_code}}</span><span v-else>im Video</span> hinterlassen.
                                 </div>
                                 <textarea autofocus="autofocus" :disabled="commentSubmitting" v-model="add_comment.text"
                                     class="form-control" v-on:keyup="stopVideo"
@@ -169,10 +184,183 @@
             </div>-->
         </div>
     </div>
+    <script>
+        const api_url = "https://api.covomedia.com/plug-review/"
+
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
+        // load infos provided by url
+        let url_version_id = urlParams.get("version_id") 
+        let url_brand = urlParams.get("brand")
+
+        if(url_version_id == null) document.body.innerHTML="<h1>Error.</h1><h5>url has no parameter version_id."
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                brand: url_brand == "" ? "ziegenhagel" : url_brand,
+                version_id: url_version_id,
+                compare_version_id: null,
+
+                hideDoneComments: false,
+                showEditLinks: false,
+                isExplainVisible: true,
+
+                time: 0,
+
+                versions: [],
+                comments: [],
+                commentsLoading: true,
+                commentSubmitting: false,
+
+                add_comment: {
+                    text: "",
+                    author: "",
+                    time: 0,
+                    done: '0'
+                }
+            },
+            computed: {
+                player: function () { return this.$refs.player },
+                compare_player: function () { return this.$refs.compare_player },
+
+                version_src: function () { return this._get_attr(this.version_id,"url") },
+                compare_version_src: function () { return this._get_attr(this.compare_version_id,"url") },
+
+                version_code: function() {return this._get_version_code(this.version_id)},
+                compare_version_code: function() {return this._get_version_code(this.compare_version_id)},
+            },
+            methods: {
+                _get_version_code: function(version_id) {
+                    return this.versions.map((v,index) => v.id == version_id ? index+1 : 0 ).filter(v=>v>0)[0]
+                },
+                _get_attr: function(version_id,attr) {
+                    let version_or_undefined = this.versions.filter(v => v.id == version_id)
+                    if(version_or_undefined[0] != undefined)
+                        return version_or_undefined[0][attr]
+                },
+                formatTime: function (s) {
+                    const zeroPad = (num, places) => String(num).padStart(places, '0')
+
+                    let mins = zeroPad(Math.floor(s / 60), 2);
+                    let secs = zeroPad(s % 60, 2);
+                    return mins + ":" + secs;
+                },
+                toggle_done: function (comment) {
+                    comment.done = comment.done == "1" ? "0" : "1";
+                    fetch(api_url + comment.id + "/comments/", {
+                        method: "put",
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                        body: JSON.stringify({ done: comment.done })
+                    })
+                },
+                submit_comment: function () {
+
+                    if (this.add_comment.text.length == 0)
+                        alert("Bitte füllen Sie das Kommentarfeld aus.")
+                    else if (this.add_comment.author.length == 0)
+                        alert("Bitte geben Sie Ihren Namen ein.")
+                    else {
+
+                        this.commentSubmitting = true
+                        fetch(api_url + this.version_id + "/comments/", {
+                            method: "post",
+                            headers: {
+                                "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                            },
+                            body: JSON.stringify({ ...this.add_comment, version_id:this.version_id })
+                        })
+                            .then(d => d.json())
+                            .then(function () {
+                                this.commentSubmitting = false
+                                this.comments.push({ ...this.add_comment })
+                                this.refreshComments()
+                                this.add_comment.text = ""
+                              
+                                this.playVideo()
+
+                            }.bind(this))
+                            .catch(e => {
+                                this.commentSubmitting = false
+                                console.log("E", e);
+                            })
+                    }
+                },
+                refreshVersions: function () {
+                    fetch(api_url + this.version_id + "/versions/", {
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                    })
+                        .then(d => d.json())
+                        .then(d => {
+                            if (d.data.length) this.versions = d.data;
+                            this.setVersionId(this.version_id)
+                         })
+                },
+                refreshComments: function () {
+                    fetch(api_url + this.version_id + "/comments/", {
+                        headers: {
+                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
+                        },
+                    })
+                        .then(d => d.json())
+                        .then(d => { this.commentsLoading = false; if (d.data == undefined) this.comments=[]; else this.comments = d.data; this.sortComments() })
+                },
+                updateTime: function () {
+                    this.time = parseInt(this.player.currentTime) | 0
+
+                    if (this.add_comment.text === "")
+                        this.add_comment.time = this.time
+                },
+                seekTo: function (time) {
+                    this.player.currentTime=time
+                    this.player.play()
+                    //if(this.compare_version_id)
+                        //this.compare_player.currentTime=time
+                },
+                stopVideo: function () {
+                    this.player.pause()
+                    //if(this.compare_version_id)
+                        //this.compare_player.pause()
+                },
+                playVideo: function() {
+                    this.player.play()
+                    //if (this.compare_version_id)
+                        //this.compare_player.play()
+                },
+                sortComments: function () {
+                    if (this.comments != undefined)
+                        this.comments = this.comments.sort((a, b) => parseInt(a.time) < parseInt(b.time) ? -1 : 1)
+                },
+                setCompareVersionId: function (version_id) {
+                    this.compare_version_id = version_id
+                    this.compare_player.load()
+                    this.seekTo(this.player.currentTime)
+                    this.playVideo()
+                },
+                setVersionId: function (version_id) {
+                    this.version_id = version_id
+                    this.refreshComments()   
+                    this.player.load()
+                    this.player.play()
+                }
+            },
+            mounted: function () {
+                this.refreshVersions()
+                setInterval(this.updateTime, 500)
+            }
+        })
+      
+    </script>
 
     <style>
 
-
+.fa.fa-times.close {margin:0px; font-size:1.4em;cursor:pointer;transition:.2s;opacity:.8;padding:15px;float: right; }
+.fa.fa-times.close:hover {transform:scale(1.1) rotate(90deg);opacity:1}
         #nav-top.is-dark {
             background: rgba(0, 0, 0, .8);
             box-shadow: none;
@@ -525,156 +713,18 @@
         .btn.btn-primary {
             border: none;
             background: #00b0d3;
+        } .compare_video_overlay {
+            position: absolute;
+            background: #0008;
+            opacity: .9;
+            color: white;
+            padding: 0.4em 1em;
+            transition:.3s;
         }
+
     </style>
-
-    <script>
-        const api_url = "https://api.covomedia.com/plug-review/"
-
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-
-        // load infos provided by url
-        let url_version_id = urlParams.get("version_id") 
-        let url_brand = urlParams.get("brand")
-
-        if(url_version_id == null) document.body.innerHTML="<h1>Error.</h1><h5>url has no parameter version_id."
-
-        var app = new Vue({
-            el: '#app',
-            data: {
-                brand: url_brand == "" ? "ziegenhagel" : url_brand,
-                version_id: url_version_id,
-
-                hideDoneComments: false,
-                showEditLinks: false,
-
-                time: 0,
-
-                versions: [],
-                comments: [],
-                commentsLoading: true,
-                commentSubmitting: false,
-
-                add_comment: {
-                    text: "",
-                    author: "",
-                    time: 0,
-                    done: '0'
-                }
-            },
-            computed: {
-                player: function () { return this.$refs.player },
-                version_src: function () {
-                    let version_or_undefined = this.versions.filter(v => v.id == this.version_id)
-                    
-                    console.log(version_or_undefined);
-
-                    if(version_or_undefined[0] != undefined)
-                        return version_or_undefined[0].url
-                },
-            },
-            methods: {
-                formatTime: function (s) {
-                    const zeroPad = (num, places) => String(num).padStart(places, '0')
-
-                    let mins = zeroPad(Math.floor(s / 60), 2);
-                    let secs = zeroPad(s % 60, 2);
-                    return mins + ":" + secs;
-                },
-                toggle_done: function (comment) {
-                    comment.done = comment.done == "1" ? "0" : "1";
-                    fetch(api_url + comment.id + "/comments/", {
-                        method: "put",
-                        headers: {
-                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
-                        },
-                        body: JSON.stringify({ done: comment.done })
-                    })
-                },
-                submit_comment: function () {
-
-                    if (this.add_comment.text.length == 0)
-                        alert("Bitte füllen Sie das Kommentarfeld aus.")
-                    else if (this.add_comment.author.length == 0)
-                        alert("Bitte geben Sie Ihren Namen ein.")
-                    else {
-
-                        this.commentSubmitting = true
-                        fetch(api_url + this.version_id + "/comments/", {
-                            method: "post",
-                            headers: {
-                                "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
-                            },
-                            body: JSON.stringify({ ...this.add_comment, version_id:this.version_id })
-                        })
-                            .then(d => d.json())
-                            .then(function () {
-                                this.commentSubmitting = false
-                                this.comments.push({ ...this.add_comment })
-                                this.sortComments()
-                                this.add_comment.text = ""
-                                this.player.play()
-                            }.bind(this))
-                            .catch(e => {
-                                this.commentSubmitting = false
-                                console.log("E", e);
-                            })
-                    }
-                },
-                refreshVersions: function () {
-                    fetch(api_url + this.version_id + "/versions/", {
-                        headers: {
-                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
-                        },
-                    })
-                        .then(d => d.json())
-                        .then(d => {
-                            if (d.data.length) this.versions = d.data;
-                            this.setVersionId(this.version_id)
-                         })
-                },
-                refreshComments: function () {
-                    fetch(api_url + this.version_id + "/comments/", {
-                        headers: {
-                            "x-api-key": "4b9583cc-0861-4102-8eb4-663e603c"
-                        },
-                    })
-                        .then(d => d.json())
-                        .then(d => { this.commentsLoading = false; if (d.data == undefined) this.comments=[]; this.comments = d.data; this.sortComments() })
-                },
-                updateTime: function () {
-                    this.time = parseInt(this.player.currentTime) | 0
-
-                    if (this.add_comment.text === "")
-                        this.add_comment.time = this.time
-                },
-                seekTo: function (time) {
-                    this.player.currentTime=time
-                },
-                stopVideo: function () {
-                    this.player.pause()
-                },
-                sortComments: function () {
-                    if (this.comments != undefined)
-                        this.comments = this.comments.sort((a, b) => parseInt(a.time) < parseInt(b.time) ? -1 : 1)
-
-                    console.log("comments order",this.comments.map(c=>c.time));
-                },
-                setVersionId: function (version_id) {
-                    this.version_id = version_id
-                    this.refreshComments()   
-                    this.player.load()
-                    this.player.play()
-                }
-            },
-            mounted: function () {
-                this.refreshVersions()
-                setInterval(this.updateTime, 500)
-            }
-        })
-      
-    </script>
-</body>
+    
+    
+    </body>
 
 </html>
