@@ -57,6 +57,8 @@
                         wird dieser automatisch mit der richtigen Stelle im Video verlinkt.
                     </div>
                 </div>
+                <div v-else><br></div>
+
                 <div class="col">
                     <div class="sticky-desktop">
 
@@ -64,7 +66,7 @@
                             <div v-if="compare_version_id" class="compare_video_overlay">Version {{version_code}}</div>
                             <video autoplay class="embed-responsive-item" controls ref="player" style="max-width:100%"
                             onpause="document.getElementById('compare_player').pause()"
-                            ontimeupdate="document.getElementById('compare_player').currentTime=this.currentTime"
+                            onseeked="document.getElementById('compare_player').currentTime=this.currentTime"
                             onplay="document.getElementById('compare_player').play()"
                             >
                                  <source :src="version_src" type="video/mp4">
@@ -189,6 +191,7 @@
 
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
+        let isSeeking = false
 
         // load infos provided by url
         let url_version_id = urlParams.get("version_id") 
@@ -199,7 +202,7 @@
         var app = new Vue({
             el: '#app',
             data: {
-                brand: url_brand == "" ? "ziegenhagel" : url_brand,
+                brand: url_brand == undefined ? "ziegenhagel" : url_brand,
                 version_id: url_version_id,
                 compare_version_id: null,
 
@@ -352,6 +355,7 @@
             mounted: function () {
                 this.refreshVersions()
                 setInterval(this.updateTime, 500)
+
             }
         })
       
