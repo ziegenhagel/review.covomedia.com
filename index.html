@@ -34,11 +34,11 @@
                 </div>
                 <div class="nav-right"><a target="_blank"
                         :href="brand == 'ziegenhagel' ? 'https://ziegenhagel.com/support' : 'https://www.guerillamedia-freiburg.de/kontakt'">
-                        <i class="fa fa-external-link-alt"></i> Support</a></div>
+                        Support</a></div>
             </div>
         </header>
 
-        <div class="container">
+        <div class="container" id="mainApp">
             <div class="row">
                 <div class="explain" v-if="isExplainVisible">
                         <i class="fa fa-times close" @click="isExplainVisible=false"></i>
@@ -184,7 +184,7 @@
         let url_version_id = urlParams.get("version_id") 
         let url_brand = urlParams.get("brand")
 
-        if(url_version_id === null) document.body.innerHTML=`<div id='error'><h1>Fehler.</h1><h5>Dieses Video konnte nicht gefunden werden.</h5>
+        if(url_version_id === null) document.getElementById("mainApp").innerHTML=`<div id='error'><h1>Fehler.</h1><h5>Dieses Video konnte nicht gefunden werden.</h5>
             <a href='https://ziegenhagel.com' class='btn btn-primary-outline'><i class='fa fa-home'></i> Zur Startseite</a></div>`
 
         var app = new Vue({
@@ -716,7 +716,12 @@
 
         #error {
             text-align: center;
-            margin:100px;
+            margin:60px auto;
+            width:100%;
+            padding:50px;
+            background:#0004;
+            padding-top:30px;
+            border-radius:10px;
         }
         #error > *{
             color:white;
