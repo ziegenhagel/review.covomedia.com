@@ -43,7 +43,7 @@
         <div class="container" id="mainApp">
             <div class="row">
                 <div class="explain" v-if="isExplainVisible">
-                        <i class="fa fa-times close" @click="isExplainVisible=false"></i>
+                    <i class="fa fa-times close" @click="isExplainVisible=false"></i>
                     <div class="card-body">
                         <h4>Feedback für Optimierungsschleifen </h4>
                     </div>
@@ -568,6 +568,10 @@
                 position: sticky;
                 top: 10px;
             }
+        }
+        @media (max-width:992px) {
+            .row {display:block}
+            .nav-right{display:none}
         }
 
         body {
