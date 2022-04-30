@@ -42,7 +42,7 @@
 
         <div class="container" id="mainApp">
             <div class="row">
-                <div class="explain" v-if="isExplainVisible">
+                <div class="explain" v-if="isExplainVisible && versions.length <= 1">
                     <i class="fa fa-times close" @click="isExplainVisible=false"></i>
                     <div class="card-body">
                         <h4>Feedback für Optimierungsschleifen </h4>
