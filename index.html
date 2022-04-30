@@ -65,7 +65,7 @@
                     <div class="sticky-desktop">
 
                         <div v-show="version_src" class="embed-responsive embed-responsive-16by9">
-                            <div v-if="compare_version_id" class="compare_video_overlay">Version {{version_code}}</div>
+                            <div v-if="compare_version_id" class="compare_video_overlay">Ausgewählt V{{version_code}}</div>
                             <video autoplay class="embed-responsive-item" controls ref="player" style="max-width:100%"
                             onpause="document.getElementById('compare_player').pause()"
                             onseeked="document.getElementById('compare_player').currentTime=this.currentTime"
@@ -75,7 +75,7 @@
                             </video>
                         </div>
                         <div v-show="compare_version_src" class="embed-responsive embed-responsive-16by9">
-                            <div v-if="compare_version_id" class="compare_video_overlay">Vergleich Version {{compare_version_code}}</div>
+                            <div v-if="compare_version_id" class="compare_video_overlay">Vergleich V{{compare_version_code}}</div>
                             <video id="compare_player" autoplay muted class="embed-responsive-item" ref="compare_player" style="max-width:100%">
                                  <source :src="compare_version_src" type="video/mp4">
                             </video>
@@ -91,18 +91,19 @@
                             <table class="table border-top">
                                 <tr :class="version.id == version_id ? 'active' : ''"
                                     v-for="(version,index) in versions">
-                                    <td>Version {{index+1}} </td>
+                                    <td>V{{index+1}} </td>
                                     <td>{{version.changelog}}</td>
                                     <td>
-                                        <i class="o5" v-if="version.id == version_id ? 'active' : ''">Aktuell ausgewählt</i>
-                                        <a class="link" @click="setVersionId(version.id)" v-else>Anschauen ›</a>
+                                        <span class="o5" v-if="version.id == version_id ? 'active' : ''">Ausgewählt</span>
+                                        <a class="link" @click="setVersionId(version.id)" v-else>Anschauen›</a>
                                     </td>
                                     <td>
-                                        <a class="link" @click="setCompareVersionId(version.id)">Vergleichen ›</a>
+                                        <a class="link" @click="setCompareVersionId(version.id)">Vergleichen›</a>
                                     </td>
                                 </tr>
                             </table>
                         </div>
+                        <br>
                     </div>
                 </div>
                 <div class="col">
@@ -619,6 +620,10 @@
         .link {
             text-decoration: none;
             transition: .17s
+        }
+
+        tr.active .link {
+            display:none
         }
 
         .link:hover {
